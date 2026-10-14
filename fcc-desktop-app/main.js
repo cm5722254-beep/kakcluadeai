@@ -933,6 +933,14 @@ ipcMain.handle('claude:launch', async (event, options = {}) => {
 });
 
 ipcMain.handle('shell:openExternal', async (event, url) => shell.openExternal(url));
+ipcMain.handle('shell:showItemInFolder', async (event, fullPath) => {
+  if (fullPath && fs.existsSync(fullPath)) {
+    shell.showItemInFolder(fullPath);
+    return true;
+  }
+  return false;
+});
+
 
 // ============================================================================
 // IPC Handlers: Key Manager (Encrypted with safeStorage)

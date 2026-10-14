@@ -487,6 +487,23 @@
           </div>
 
           <div class="editor-actions-right">
+            <!-- Run Code (F5) -->
+            <button class="tb-btn tb-btn-run" id="btn-run-active-code" title="Run Active File in Terminal (F5)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span id="lbl-run-btn">Run Code</span>
+            </button>
+
+            <!-- Format Code (Shift+Alt+F) -->
+            <button class="tb-icon-btn" id="btn-format-active-code" title="Format Document (Shift+Alt+F)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                <line x1="9" y1="20" x2="15" y2="20"></line>
+                <line x1="12" y1="4" x2="12" y2="20"></line>
+              </svg>
+            </button>
+
             <!-- Word Wrap Toggle -->
             <button class="tb-icon-btn active" id="btn-editor-wrap" title="Toggle Word Wrap">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -744,7 +761,71 @@
         </button>
       </div>
     </div>
+  <!-- Modal 3: File / Folder Prompt Modal -->
+  <div class="modal-overlay hidden" id="modal-file-prompt">
+    <div class="modal-dialog prompt-dialog" style="max-width:440px;">
+      <div class="modal-header">
+        <span class="modal-title" id="file-prompt-title">New File</span>
+        <button class="icon-btn-mini" id="btn-close-prompt-modal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:16px;">
+        <label id="file-prompt-label" style="font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:8px; display:block;">Enter item name:</label>
+        <input type="text" class="key-input" id="inp-file-prompt-val" placeholder="e.g. index.js" style="width:100%; font-size:13px; padding:8px 12px;">
+        <div id="file-prompt-target-dir" style="font-size:11px; color:var(--text-dim); margin-top:8px; word-break:break-all;"></div>
+      </div>
+      <div class="modal-footer" style="padding:12px 16px;">
+        <button class="tb-btn" id="btn-cancel-prompt">Cancel</button>
+        <button class="tb-btn" id="btn-confirm-prompt" style="background:var(--accent-bg); color:var(--accent); border-color:var(--line-active); font-weight:600;">
+          Confirm
+        </button>
+      </div>
+    </div>
   </div>
+
+  <!-- Tree & Workspace Context Menu -->
+  <div id="tree-context-menu" class="context-menu hidden">
+    <div class="ctx-item" data-action="new-file">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+      <span>New File...</span>
+    </div>
+    <div class="ctx-item" data-action="new-folder">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+      <span>New Folder...</span>
+    </div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" data-action="run-file">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      <span style="color:var(--accent); font-weight:600;">Run in Terminal (F5)</span>
+    </div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" data-action="rename">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+      <span>Rename...</span>
+    </div>
+    <div class="ctx-item" data-action="delete" style="color:var(--color-danger);">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+      <span>Delete</span>
+    </div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" data-action="copy-path">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+      <span>Copy Path</span>
+    </div>
+    <div class="ctx-item" data-action="copy-rel-path">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+      <span>Copy Relative Path</span>
+    </div>
+    <div class="ctx-item" data-action="reveal-explorer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+      <span>Reveal in File Explorer</span>
+    </div>
+  </div>
+
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container"></div>

@@ -1817,3 +1817,99 @@ body.theme-light .terminal-viewport {
   color: #fff;
 }
 
+/* ==========================================================================
+   Run Code Button & Editor Toolbar Utilities
+   ========================================================================== */
+.tb-btn-run {
+  background: rgba(88, 159, 118, 0.18) !important;
+  color: #589f76 !important;
+  border-color: rgba(88, 159, 118, 0.45) !important;
+  font-weight: 600 !important;
+  gap: 6px;
+  padding: 0 10px !important;
+  transition: all var(--transition-fast);
+}
+
+.tb-btn-run:hover {
+  background: rgba(88, 159, 118, 0.3) !important;
+  border-color: #589f76 !important;
+  color: #79c598 !important;
+  box-shadow: 0 0 12px rgba(88, 159, 118, 0.25);
+  transform: translateY(-1px);
+}
+
+.tb-btn-run:active {
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   Context Menu (Right-Click in Explorer)
+   ========================================================================== */
+.context-menu {
+  position: fixed;
+  z-index: 10000;
+  min-width: 190px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line-hover);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  backdrop-filter: blur(12px);
+  animation: ctxFadeIn 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ctxFadeIn {
+  from { opacity: 0; transform: scale(0.97) translateY(-3px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.context-menu.hidden {
+  display: none !important;
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-main);
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.ctx-item:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.ctx-item svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.ctx-item:hover svg {
+  opacity: 1;
+}
+
+.ctx-sep {
+  height: 1px;
+  background: var(--line-color);
+  margin: 3px 0;
+}
+
+/* Prompt Modal */
+.prompt-dialog {
+  background: var(--bg-panel);
+  border: 1px solid var(--line-hover);
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  width: 100%;
+}
+

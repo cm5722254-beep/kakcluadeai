@@ -118,6 +118,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Claude CLI & External Shell
   launchClaudeCode: (options) => ipcRenderer.invoke('claude:launch', options),
   openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+  showItemInFolder: (filePath) => ipcRenderer.invoke('shell:showItemInFolder', filePath),
 
   // Window Controls (frameless titlebar)
   minimizeWindow: () => ipcRenderer.invoke('window:minimize'),

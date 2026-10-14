@@ -92,7 +92,9 @@ const Translations = {
     tasks: 'PROJECT TASKS & STEPS',
     tasksPlaceholder: 'Add a project step or milestone...',
     promptPlaceholder: 'Ask AI assistant about this code, request edits, or generate tests... (Ctrl+Enter to send)',
-    serverStoppedNotice: 'FCC Server is stopped. Please start the server to use AI assistance.'
+    serverStoppedNotice: 'FCC Server is stopped. Please start the server to use AI assistance.',
+    runCode: 'Run Code',
+    formatCode: 'Format'
   },
   km: {
     explorer: 'កម្មវិធីរុករកឯកសារ',
@@ -119,7 +121,9 @@ const Translations = {
     testsAction: 'បង្កើតតេស្ត',
     khmerAction: 'ពន្យល់ជាភាសាខ្មែរ',
     promptPlaceholder: 'សួរសំណួរទៅកាន់ AI អំពីកូដនេះ ឬស្នើសុំកែប្រែកូដ... (Ctrl+Enter ដើម្បីផ្ញើ)',
-    serverStoppedNotice: 'FCC Server មិនទាន់ដំណើរការទេ។ សូមចុច "ចាប់ផ្តើម Server" ជាមុនសិន។'
+    serverStoppedNotice: 'FCC Server មិនទាន់ដំណើរការទេ។ សូមចុច "ចាប់ផ្តើម Server" ជាមុនសិន។',
+    runCode: 'ដំណើការកូដ (Run)',
+    formatCode: 'រៀបចំកូដ (Format)'
   }
 };
 
@@ -139,6 +143,7 @@ function applyTranslations(lang) {
   setTxt('lbl-settings-title', t.settings);
   setTxt('lbl-claude-term', t.claudeTerm);
   setTxt('lbl-save-btn', t.save);
+  setTxt('lbl-run-btn', t.runCode);
   setTxt('lbl-switch-workspace', t.switchWorkspace);
   setTxt('lbl-cmd-hint', t.searchPrompt);
 
@@ -655,10 +660,86 @@ function fitActiveTerminal() {
   } catch (e) {}
 }
 
-function sendCommandToActiveTerminal(cmd) {
+async function sendCommandToActiveTerminal(cmd) {
+  const dock = document.getElementById('terminal-dock');
+  if (dock && dock.classList.contains('hidden')) {
+    dock.classList.remove('hidden');
+    fitActiveTerminal();
+  }
+  if (!activeTerminalSession) {
+    await createTerminalTab();
+  }
   if (activeTerminalSession) {
     window.electronAPI.writeTerminalSession(activeTerminalSession.id, `${cmd}\r`);
     showToast(`Ran "${cmd}" in terminal`, 'info');
+  }
+}
+
+async function runActiveFile() {
+  if (activeTabIndex < 0 || !openTabs[activeTabIndex]) {
+    showToast('No active file to run. Open or create a file first.', 'warn');
+    return;
+  }
+  const tab = openTabs[activeTabIndex];
+  if (tab.isWelcome) {
+    showToast('The Welcome guide cannot be executed.', 'info');
+    return;
+  }
+
+  // Auto-save changes before executing so file on disk is fresh
+  if (tab.isDirty) {
+    await saveActiveFile();
+  }
+
+  const filePath = tab.path;
+  const fileName = tab.name;
+  const ext = fileName.split('.').pop().toLowerCase();
+
+  const dock = document.getElementById('terminal-dock');
+  if (dock && dock.classList.contains('hidden')) {
+    dock.classList.remove('hidden');
+    fitActiveTerminal();
+  }
+
+  if (ext === 'html') {
+    window.electronAPI.openExternal(`file://${filePath}`);
+    showToast(`Opened ${fileName} in default browser`, 'success');
+    return;
+  }
+
+  let cmd = '';
+  if (['js', 'mjs', 'cjs'].includes(ext)) {
+    cmd = `node "${filePath}"`;
+  } else if (['ts', 'tsx'].includes(ext)) {
+    cmd = `npx tsx "${filePath}"`;
+  } else if (ext === 'py') {
+    cmd = `python "${filePath}"`;
+  } else if (['bat', 'cmd'].includes(ext)) {
+    cmd = `& "${filePath}"`;
+  } else if (ext === 'ps1') {
+    cmd = `& "${filePath}"`;
+  } else if (ext === 'sh') {
+    cmd = `bash "${filePath}"`;
+  } else {
+    cmd = `& "${filePath}"`;
+  }
+
+  await sendCommandToActiveTerminal(cmd);
+}
+
+function formatActiveCode() {
+  if (monacoEditor) {
+    try {
+      const action = monacoEditor.getAction('editor.action.formatDocument');
+      if (action) {
+        action.run();
+        showToast('Document formatted', 'info');
+      } else {
+        showToast('No document formatter for this file type', 'warn');
+      }
+    } catch (e) {
+      showToast('Format error: ' + e.message, 'error');
+    }
   }
 }
 
@@ -1092,6 +1173,77 @@ async function loadWorkspace(dirPath) {
   }
 }
 
+// Path join helper
+function joinWorkspacePath(dir, name) {
+  if (!dir) return name;
+  const isBackslash = dir.includes('\\') || (!dir.includes('/') && navigator.userAgent.includes('Windows'));
+  const sep = isBackslash ? '\\' : '/';
+  return dir.endsWith('\\') || dir.endsWith('/') ? `${dir}${name}` : `${dir}${sep}${name}`;
+}
+
+function getParentDirPath(itemPath) {
+  if (!itemPath) return currentWorkspacePath;
+  const lastSlash = Math.max(itemPath.lastIndexOf('\\'), itemPath.lastIndexOf('/'));
+  return lastSlash > 0 ? itemPath.substring(0, lastSlash) : currentWorkspacePath;
+}
+
+// Modal File Prompt
+let activePromptCallback = null;
+
+function showFilePrompt(title, label, defaultValue, targetDir, onConfirm) {
+  const modal = document.getElementById('modal-file-prompt');
+  const titleEl = document.getElementById('file-prompt-title');
+  const labelEl = document.getElementById('file-prompt-label');
+  const inputEl = document.getElementById('inp-file-prompt-val');
+  const dirEl = document.getElementById('file-prompt-target-dir');
+  if (!modal || !inputEl) return;
+
+  if (titleEl) titleEl.textContent = title;
+  if (labelEl) labelEl.textContent = label;
+  if (dirEl) dirEl.textContent = targetDir ? `Folder: ${targetDir}` : '';
+  inputEl.value = defaultValue || '';
+
+  modal.classList.remove('hidden');
+  inputEl.focus();
+  inputEl.select();
+
+  activePromptCallback = onConfirm;
+}
+
+function closeFilePrompt() {
+  const modal = document.getElementById('modal-file-prompt');
+  if (modal) modal.classList.add('hidden');
+  activePromptCallback = null;
+}
+
+// Context Menu State
+let activeContextItem = null;
+
+function showContextMenu(x, y, item) {
+  activeContextItem = item;
+  const menu = document.getElementById('tree-context-menu');
+  if (!menu) return;
+
+  const runItem = menu.querySelector('[data-action="run-file"]');
+  if (runItem) {
+    runItem.style.display = item.isDir ? 'none' : 'flex';
+  }
+
+  menu.classList.remove('hidden');
+  const menuW = 210;
+  const menuH = menu.offsetHeight || 250;
+  const left = Math.min(x, window.innerWidth - menuW - 10);
+  const top = Math.min(y, window.innerHeight - menuH - 10);
+  menu.style.left = `${Math.max(10, left)}px`;
+  menu.style.top = `${Math.max(10, top)}px`;
+}
+
+function hideContextMenu() {
+  const menu = document.getElementById('tree-context-menu');
+  if (menu) menu.classList.add('hidden');
+  activeContextItem = null;
+}
+
 function renderFileTreeNodes(parentEl, items, depth = 0) {
   if (!parentEl) return;
   parentEl.innerHTML = '';
@@ -1109,6 +1261,15 @@ function renderFileTreeNodes(parentEl, items, depth = 0) {
     const row = document.createElement('div');
     row.className = 'tree-node';
     row.style.paddingLeft = `${depth * 14 + 10}px`;
+
+    // Right-click context menu on tree node
+    row.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('selected'));
+      row.classList.add('selected');
+      showContextMenu(e.clientX, e.clientY, item);
+    });
 
     if (item.isDir) {
       row.innerHTML = `
@@ -1383,19 +1544,23 @@ function renderPaletteItems(query) {
     // Commands mode
     const cmdQuery = query.slice(1).trim().toLowerCase();
     const commands = [
+      { name: 'Run Active File (F5)', action: () => runActiveFile(), sub: 'editor:run' },
+      { name: 'Format Document (Shift+Alt+F)', action: () => formatActiveCode(), sub: 'editor:format' },
+      { name: 'New File in Project', action: () => document.getElementById('btn-tree-new-file')?.click(), sub: 'fs:createFile' },
+      { name: 'New Folder in Project', action: () => document.getElementById('btn-tree-new-folder')?.click(), sub: 'fs:createDirectory' },
+      { name: 'Save Active File (Ctrl+S)', action: () => saveActiveFile(), sub: 'fs:writeFile' },
       { name: 'Start Server', action: () => toggleServerState(), sub: 'server:start' },
       { name: 'Stop Server', action: () => toggleServerState(), sub: 'server:stop' },
-      { name: 'Open Terminal', action: () => createTerminalTab(), sub: 'term:create' },
+      { name: 'Open Terminal (Ctrl+`)', action: () => createTerminalTab(), sub: 'term:create' },
       { name: 'Launch Claude Code CLI', action: () => sendCommandToActiveTerminal('fcc-claude'), sub: 'claude:launch' },
       { name: 'Toggle Word Wrap', action: () => toggleWordWrap(), sub: 'editor:wrap' },
       { name: 'Toggle Markdown Preview', action: () => toggleMarkdownPreview(), sub: 'editor:preview' },
       { name: 'Run 1-Click Auto Setup', action: () => document.getElementById('act-setup').click(), sub: 'installer:run' },
-      { name: 'Switch Project Folder', action: () => chooseProjectFolder(), sub: 'dialog:openFolder' },
+      { name: 'Switch Project Folder (Ctrl+O)', action: () => chooseProjectFolder(), sub: 'dialog:openFolder' },
       { name: 'Switch Theme: Claude Terracotta (Obsidian)', action: () => applyTheme('claude'), sub: 'theme:claude' },
       { name: 'Switch Theme: Claude Warm Alabaster (Light)', action: () => applyTheme('light'), sub: 'theme:light' },
       { name: 'Switch Theme: Claude Desert Amber', action: () => applyTheme('amber'), sub: 'theme:amber' },
-      { name: 'Switch Theme: Claude Deep Charcoal', action: () => applyTheme('charcoal'), sub: 'theme:charcoal' },
-      { name: 'Save Active File', action: () => saveActiveFile(), sub: 'fs:writeFile' }
+      { name: 'Switch Theme: Claude Deep Charcoal', action: () => applyTheme('charcoal'), sub: 'theme:charcoal' }
     ];
 
     const filtered = commands.filter(c => c.name.toLowerCase().includes(cmdQuery));
@@ -1679,8 +1844,212 @@ function setupWindowControls() {
   if (closeBtn) closeBtn.addEventListener('click', () => window.electronAPI.closeWindow());
 }
 
+function setupExplorerActions() {
+  // New File in Explorer Toolbar
+  const btnNewFile = document.getElementById('btn-tree-new-file');
+  if (btnNewFile) {
+    btnNewFile.addEventListener('click', () => {
+      showFilePrompt('New File', 'Enter file name (e.g. app.py, index.js):', '', currentWorkspacePath, async (name) => {
+        const fullPath = joinWorkspacePath(currentWorkspacePath, name);
+        const res = await window.electronAPI.createFile(fullPath);
+        if (res.success) {
+          await loadWorkspace(currentWorkspacePath);
+          await openFileByPath(fullPath);
+          showToast(`Created file: "${name}"`, 'success');
+        } else {
+          showToast(`Failed creating file: ${res.error}`, 'error');
+        }
+      });
+    });
+  }
+
+  // New Folder in Explorer Toolbar
+  const btnNewFolder = document.getElementById('btn-tree-new-folder');
+  if (btnNewFolder) {
+    btnNewFolder.addEventListener('click', () => {
+      showFilePrompt('New Folder', 'Enter folder name:', '', currentWorkspacePath, async (name) => {
+        const fullPath = joinWorkspacePath(currentWorkspacePath, name);
+        const res = await window.electronAPI.createDirectory(fullPath);
+        if (res.success) {
+          await loadWorkspace(currentWorkspacePath);
+          showToast(`Created folder: "${name}"`, 'success');
+        } else {
+          showToast(`Failed creating folder: ${res.error}`, 'error');
+        }
+      });
+    });
+  }
+
+  // Refresh Tree in Explorer Toolbar
+  const btnRefresh = document.getElementById('btn-tree-refresh');
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', async () => {
+      if (currentWorkspacePath) {
+        await loadWorkspace(currentWorkspacePath);
+        showToast('Workspace refreshed', 'info');
+      }
+    });
+  }
+
+  // Right-click empty tree container
+  const treeContainer = document.getElementById('file-tree-container');
+  if (treeContainer) {
+    treeContainer.addEventListener('contextmenu', (e) => {
+      if (e.target.closest('.tree-node')) return;
+      e.preventDefault();
+      showContextMenu(e.clientX, e.clientY, {
+        path: currentWorkspacePath,
+        name: currentWorkspacePath.split(/[\\/]/).pop() || 'Workspace',
+        isDir: true
+      });
+    });
+  }
+
+  // Prompt Modal Buttons
+  const btnClosePrompt = document.getElementById('btn-close-prompt-modal');
+  const btnCancelPrompt = document.getElementById('btn-cancel-prompt');
+  const btnConfirmPrompt = document.getElementById('btn-confirm-prompt');
+  const inpPrompt = document.getElementById('inp-file-prompt-val');
+
+  if (btnClosePrompt) btnClosePrompt.addEventListener('click', closeFilePrompt);
+  if (btnCancelPrompt) btnCancelPrompt.addEventListener('click', closeFilePrompt);
+  if (btnConfirmPrompt) {
+    btnConfirmPrompt.addEventListener('click', () => {
+      const val = inpPrompt.value.trim();
+      if (val && activePromptCallback) {
+        activePromptCallback(val);
+      }
+      closeFilePrompt();
+    });
+  }
+  if (inpPrompt) {
+    inpPrompt.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const val = inpPrompt.value.trim();
+        if (val && activePromptCallback) {
+          activePromptCallback(val);
+        }
+        closeFilePrompt();
+      } else if (e.key === 'Escape') {
+        closeFilePrompt();
+      }
+    });
+  }
+
+  // Context Menu Item Actions
+  const contextMenu = document.getElementById('tree-context-menu');
+  if (contextMenu) {
+    contextMenu.querySelectorAll('.ctx-item').forEach(itemEl => {
+      itemEl.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const action = itemEl.dataset.action;
+        const target = activeContextItem || { path: currentWorkspacePath, isDir: true, name: 'Workspace' };
+        hideContextMenu();
+
+        const targetDir = target.isDir ? target.path : getParentDirPath(target.path);
+
+        if (action === 'new-file') {
+          showFilePrompt('New File', `Create file in: ${targetDir.split(/[\\/]/).pop() || 'Workspace'}`, '', targetDir, async (name) => {
+            const fullPath = joinWorkspacePath(targetDir, name);
+            const res = await window.electronAPI.createFile(fullPath);
+            if (res.success) {
+              await loadWorkspace(currentWorkspacePath);
+              await openFileByPath(fullPath);
+              showToast(`Created "${name}"`, 'success');
+            } else {
+              showToast(`Create failed: ${res.error}`, 'error');
+            }
+          });
+        } else if (action === 'new-folder') {
+          showFilePrompt('New Folder', `Create folder in: ${targetDir.split(/[\\/]/).pop() || 'Workspace'}`, '', targetDir, async (name) => {
+            const fullPath = joinWorkspacePath(targetDir, name);
+            const res = await window.electronAPI.createDirectory(fullPath);
+            if (res.success) {
+              await loadWorkspace(currentWorkspacePath);
+              showToast(`Created folder "${name}"`, 'success');
+            } else {
+              showToast(`Create failed: ${res.error}`, 'error');
+            }
+          });
+        } else if (action === 'run-file') {
+          if (!target.isDir) {
+            await openFileByPath(target.path);
+            await runActiveFile();
+          }
+        } else if (action === 'rename') {
+          const parentDir = getParentDirPath(target.path);
+          showFilePrompt('Rename Item', `Rename "${target.name}" to:`, target.name, parentDir, async (newName) => {
+            if (newName === target.name) return;
+            const newPath = joinWorkspacePath(parentDir, newName);
+            const res = await window.electronAPI.renameItem(target.path, newPath);
+            if (res.success) {
+              const openIdx = openTabs.findIndex(t => t.path === target.path);
+              if (openIdx !== -1) {
+                openTabs[openIdx].path = newPath;
+                openTabs[openIdx].name = newName;
+                renderTabs();
+                updateEditorBreadcrumbs(newName);
+              }
+              await loadWorkspace(currentWorkspacePath);
+              showToast(`Renamed to "${newName}"`, 'success');
+            } else {
+              showToast(`Rename failed: ${res.error}`, 'error');
+            }
+          });
+        } else if (action === 'delete') {
+          const confirmMsg = `Are you sure you want to delete "${target.name}" permanently?`;
+          if (confirm(confirmMsg)) {
+            const res = await window.electronAPI.deleteItem(target.path);
+            if (res.success) {
+              const openIdx = openTabs.findIndex(t => t.path === target.path);
+              if (openIdx !== -1) {
+                openTabs[openIdx].isDirty = false;
+                closeTab(openIdx);
+              }
+              await loadWorkspace(currentWorkspacePath);
+              showToast(`Deleted "${target.name}"`, 'info');
+            } else {
+              showToast(`Delete failed: ${res.error}`, 'error');
+            }
+          }
+        } else if (action === 'copy-path') {
+          navigator.clipboard.writeText(target.path);
+          showToast('Copied full path to clipboard', 'success');
+        } else if (action === 'copy-rel-path') {
+          let rel = target.path.replace(currentWorkspacePath, '');
+          if (rel.startsWith('\\') || rel.startsWith('/')) rel = rel.slice(1);
+          navigator.clipboard.writeText(rel || target.name);
+          showToast('Copied relative path to clipboard', 'success');
+        } else if (action === 'reveal-explorer') {
+          window.electronAPI.showItemInFolder(target.path);
+          showToast(`Revealed in Explorer`, 'info');
+        }
+      });
+    });
+  }
+
+  // Dismiss context menu on click anywhere outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#tree-context-menu')) {
+      hideContextMenu();
+    }
+  });
+}
+
 function setupGlobalShortcuts() {
   window.addEventListener('keydown', (e) => {
+    // F5 or Ctrl+F5: Run active code
+    if (e.key === 'F5' || (e.ctrlKey && e.key === 'F5')) {
+      e.preventDefault();
+      runActiveFile();
+      return;
+    }
+    // Shift+Alt+F: Format Document
+    if (e.shiftKey && e.altKey && (e.key === 'F' || e.key === 'f')) {
+      e.preventDefault();
+      formatActiveCode();
+      return;
+    }
     // Ctrl+S: Save file
     if (e.ctrlKey && e.key === 's') {
       e.preventDefault();
@@ -1718,9 +2087,10 @@ function setupGlobalShortcuts() {
       const inp = document.getElementById('inp-workspace-search');
       if (inp) inp.focus();
     }
-    // Esc: Close any active modal
+    // Esc: Close any active modal or context menu
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+      hideContextMenu();
     }
   });
 
@@ -2119,7 +2489,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Editor Bar Actions
+  const btnRunCode = document.getElementById('btn-run-active-code');
+  if (btnRunCode) btnRunCode.addEventListener('click', runActiveFile);
+
+  const btnFormatCode = document.getElementById('btn-format-active-code');
+  if (btnFormatCode) btnFormatCode.addEventListener('click', formatActiveCode);
+
   // Setup Subsystems
+  setupExplorerActions();
   setupAIChat();
   setupWorkspaceSearch();
   setupKeyEvents();
