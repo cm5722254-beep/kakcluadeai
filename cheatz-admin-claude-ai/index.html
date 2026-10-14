@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHEATZ ADMIN CLAUDE AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ======================================================================
+       1. Top Frameless Cyberpunk Titlebar HUD
+       ====================================================================== -->
+  <header class="cheatz-titlebar" id="cheatz-titlebar">
+    <div class="titlebar-brand">
+      <div class="brand-icon-box">
+        <img src="assets/logo.jpg" alt="CHEATZ Icon">
+      </div>
+      <div class="brand-title">
+        CHEATZ ADMIN <span class="brand-tag">CLAUDE AI</span>
+      </div>
+    </div>
+
+    <!-- Center HUD Telemetry -->
+    <div class="titlebar-hud">
+      <div class="hud-pill online" id="hud-server-status" title="FCC Proxy Server Status on 127.0.0.1:8082">
+        <span class="pulse-dot" id="hud-pulse-dot"></span>
+        <span id="hud-status-text">FCC :8082 ONLINE</span>
+        <span style="opacity: 0.6;">|</span>
+        <span id="hud-latency">12ms</span>
+      </div>
+
+      <button class="hud-btn" id="btn-toggle-server" title="Start or Stop Local FCC Server">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span id="txt-toggle-server">Restart Server</span>
+      </button>
+
+      <button class="hud-btn" id="btn-launch-claude" title="Launch Claude Code CLI in CMD">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4 17 10 11 4 5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+        <span>fcc-claude</span>
+      </button>
+
+      <button class="hud-btn" id="btn-open-browser" title="Open Default Browser Dashboard">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+          <polyline points="15 3 21 3 21 9"></polyline>
+          <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg>
+        <span>Web UI</span>
+      </button>
+    </div>
+
+    <!-- Window Controls -->
+    <div class="titlebar-controls">
+      <button class="win-btn" id="btn-win-min" title="Minimize">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+      <button class="win-btn" id="btn-win-max" title="Maximize">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        </svg>
+      </button>
+      <button class="win-btn close" id="btn-win-close" title="Close">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       2. Workspace: Sidebar & Dynamic Viewport
+       ====================================================================== -->
+  <div class="cheatz-workspace">
+    <!-- Cyber Sidebar Navigation -->
+    <aside class="cheatz-sidebar">
+      <div>
+        <div class="nav-section-title">Navigation Hub</div>
+        <ul class="nav-list">
+          <li>
+            <button class="nav-item-btn active" data-view="view-providers">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
+              <span>Providers Hub</span>
+              <span class="nav-badge" id="badge-configured-count">2 Configured</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-view="view-models">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+              </svg>
+              <span>Model Routing</span>
+              <span class="nav-badge" id="badge-models-count">23 Models</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-view="view-presets">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+              <span>Cheatz Presets</span>
+              <span class="nav-badge" style="color: var(--neon-cyan);">HYPER</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-view="view-sessions">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <polyline points="4 17 10 11 4 5"></polyline>
+                <line x1="12" y1="19" x2="20" y2="19"></line>
+              </svg>
+              <span>Code Sessions</span>
+              <span class="nav-badge" id="badge-sessions-count">Live</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-view="view-integrations">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
+                <path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path>
+                <circle cx="8" cy="12" r="2"></circle>
+              </svg>
+              <span>Integrations</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-view="view-playground">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+              <span>AI Playground</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Cheatz Status Bottom Card -->
+      <div class="sidebar-cheatz-status">
+        <div class="cheatz-status-header">
+          <span>ACTIVE ROUTE</span>
+          <span style="color: var(--neon-emerald);">READY</span>
+        </div>
+        <div class="active-proxy-target" id="lbl-active-route">NVIDIA NIM / DeepSeek-V4.1</div>
+        <div class="cheatz-quick-toggle-bar">
+          <button class="cheatz-quick-btn" id="btn-quick-refresh" title="Reload FCC API Status">
+            ↻ Refresh
+          </button>
+          <button class="cheatz-quick-btn" id="btn-quick-copy" title="Copy CLI export command">
+            📋 Copy CLI
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Viewport Pane -->
+    <main class="cheatz-viewport" id="cheatz-viewport">
+
+      <!-- ==================================================================
+           VIEW 1: PROVIDERS HUB
+           ================================================================== -->
+      <section class="view-pane active" id="view-providers">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h1>Providers Hub <span style="font-size: 14px; color: var(--neon-cyan); font-weight: 500;">(OAuth & Cloud LLMs)</span></h1>
+            <p>Connect and configure API keys for Anthropic, NVIDIA NIM, OpenAI, DeepSeek, Bedrock & Local models.</p>
+          </div>
+          <div class="view-actions">
+            <button class="btn-action primary" id="btn-refresh-providers">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+              </svg>
+              <span>Refresh Providers</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="filter-toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="input-provider-search" placeholder="Search provider or model (e.g. NVIDIA, Claude, Copilot)...">
+          </div>
+          <div class="filter-pills">
+            <button class="filter-btn active" data-filter="all">All Providers</button>
+            <button class="filter-btn" data-filter="configured">Configured</button>
+            <button class="filter-btn" data-filter="missing_key">Missing Key</button>
+            <button class="filter-btn" data-filter="local">Local Models</button>
+          </div>
+        </div>
+
+        <!-- OAuth Section -->
+        <div class="providers-section">
+          <div class="section-label">
+            <span>OAuth Providers</span>
+            <span style="opacity: 0.5;">(GitHub Copilot, ChatGPT Pro)</span>
+          </div>
+          <div class="providers-grid" id="grid-oauth-providers">
+            <!-- Dynamically Rendered -->
+          </div>
+        </div>
+
+        <!-- Cloud & Local LLMs Section -->
+        <div class="providers-section">
+          <div class="section-label">
+            <span>Cloud & Local Inference Providers</span>
+          </div>
+          <div class="providers-grid" id="grid-cloud-providers">
+            <!-- Dynamically Rendered -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           VIEW 2: MODEL ROUTING MATRIX
+           ================================================================== -->
+      <section class="view-pane" id="view-models">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h1>Model Routing Matrix</h1>
+            <p>Direct Claude Code CLI requests (Sonnet, Opus, Haiku) to your preferred backend models.</p>
+          </div>
+          <div class="view-actions">
+            <button class="btn-action primary" id="btn-save-routing">Save Routing</button>
+          </div>
+        </div>
+
+        <div class="model-matrix-card">
+          <div class="routing-item">
+            <div class="routing-source">
+              <span class="source-badge">CLAUDE CODE DEFAULT</span>
+              <div class="source-name">Claude 3.5 Sonnet</div>
+            </div>
+            <div class="arrow-divider">➔</div>
+            <div class="routing-target">
+              <select class="target-select" id="select-route-sonnet">
+                <!-- Dynamically loaded with models -->
+              </select>
+            </div>
+          </div>
+
+          <div class="routing-item">
+            <div class="routing-source">
+              <span class="source-badge">REASONING & THINKING</span>
+              <div class="source-name">Claude 3.7 Sonnet / Opus</div>
+            </div>
+            <div class="arrow-divider">➔</div>
+            <div class="routing-target">
+              <select class="target-select" id="select-route-opus">
+                <!-- Dynamically loaded with models -->
+              </select>
+            </div>
+          </div>
+
+          <div class="routing-item">
+            <div class="routing-source">
+              <span class="source-badge">FAST COMMITS & EDITS</span>
+              <div class="source-name">Claude 3.5 Haiku</div>
+            </div>
+            <div class="arrow-divider">➔</div>
+            <div class="routing-target">
+              <select class="target-select" id="select-route-haiku">
+                <!-- Dynamically loaded with models -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-label">Discovered Models Catalogue (<span id="txt-total-models-count">23</span> Models)</div>
+        <div class="providers-grid" id="grid-discovered-models">
+          <!-- Dynamically Rendered Models -->
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           VIEW 3: CHEATZ PRESETS (1-Click Cheat Profiles)
+           ================================================================== -->
+      <section class="view-pane" id="view-presets">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h1>Cheatz Fast Presets ⚡</h1>
+            <p>One-click hyperdrive configurations for unlimited free coding, zero latency, or local offline work.</p>
+          </div>
+        </div>
+
+        <div class="presets-grid">
+          <!-- Preset 1 -->
+          <div class="preset-card" onclick="applyPreset('nvidia_free')">
+            <div class="preset-header">
+              <div class="preset-icon">🚀</div>
+              <div class="preset-title">
+                <h3>NVIDIA NIM Free Unlimited</h3>
+                <span>deepseek-v4.1-flash & nemotron-3</span>
+              </div>
+            </div>
+            <p class="preset-desc">
+              Routes all Claude Code queries to NVIDIA NIM's ultra-fast DeepSeek V4.1 Flash & Nemotron-3. Zero cost, massive context window, and instant response times.
+            </p>
+            <button class="card-btn primary" style="margin-top: 10px;">Activate Preset</button>
+          </div>
+
+          <!-- Preset 2 -->
+          <div class="preset-card" onclick="applyPreset('ultra_fast')">
+            <div class="preset-header">
+              <div class="preset-icon">⚡</div>
+              <div class="preset-title">
+                <h3>Sub-100ms Speed Demon</h3>
+                <span>groq / cerebras / kimi-k3</span>
+              </div>
+            </div>
+            <p class="preset-desc">
+              Optimized for ultra-fast code generation and real-time completions using high-throughput LPU inference engines.
+            </p>
+            <button class="card-btn primary" style="margin-top: 10px;">Activate Preset</button>
+          </div>
+
+          <!-- Preset 3 -->
+          <div class="preset-card" onclick="applyPreset('local_offline')">
+            <div class="preset-header">
+              <div class="preset-icon">🛡️</div>
+              <div class="preset-title">
+                <h3>100% Offline Airgap Mode</h3>
+                <span>ollama :11434 & lmstudio :1234</span>
+              </div>
+            </div>
+            <p class="preset-desc">
+              Total privacy. Completely redirects all Claude Code traffic to your local Ollama or LM Studio GPU instance without internet access.
+            </p>
+            <button class="card-btn primary" style="margin-top: 10px;">Activate Preset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           VIEW 4: CODE SESSIONS
+           ================================================================== -->
+      <section class="view-pane" id="view-sessions">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h1>Active Code Sessions</h1>
+            <p>Real-time monitor of running Claude Code CLI sessions, token telemetry, and execution history.</p>
+          </div>
+          <div class="view-actions">
+            <button class="btn-action primary" id="btn-refresh-sessions">Refresh Sessions</button>
+          </div>
+        </div>
+
+        <div class="sessions-table-wrap">
+          <table class="sessions-table">
+            <thead>
+              <tr>
+                <th>Session ID</th>
+                <th>Target Provider</th>
+                <th>Tokens / Prompt</th>
+                <th>Created At</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-sessions">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                  No active Claude Code sessions running. Launch <code>fcc-claude</code> to begin.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           VIEW 5: INTEGRATIONS CENTRAL
+           ================================================================== -->
+      <section class="view-pane" id="view-integrations">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h1>Integrations Hub</h1>
+            <p>Connect Free Claude Code Server with your favorite IDEs and editor environments in 1 click.</p>
+          </div>
+        </div>
+
+        <div class="integrations-grid">
+          <div class="integration-card">
+            <div class="integ-top">
+              <div class="integ-icon">💻</div>
+              <div class="integ-info">
+                <h3>Claude Code CLI</h3>
+                <p>Configures FCC's proxy URL and token for the global <code>claude</code> and <code>fcc-claude</code> commands.</p>
+              </div>
+            </div>
+            <button class="btn-action primary" onclick="runIntegration('claude-vscode')">Setup Claude CLI</button>
+          </div>
+
+          <div class="integration-card">
+            <div class="integ-top">
+              <div class="integ-icon">⚡</div>
+              <div class="integ-info">
+                <h3>VS Code Chat</h3>
+                <p>Adds all FCC proxy models directly into GitHub Copilot and VS Code Chat panels seamlessly.</p>
+              </div>
+            </div>
+            <button class="btn-action primary" onclick="runIntegration('vscode-chat')">Inject to VS Code</button>
+          </div>
+
+          <div class="integration-card">
+            <div class="integ-top">
+              <div class="integ-icon">🧠</div>
+              <div class="integ-info">
+                <h3>JetBrains IDEs</h3>
+                <p>Route Claude Code in IntelliJ, WebStorm, PyCharm through your local FCC server proxy.</p>
+              </div>
+            </div>
+            <button class="btn-action primary" onclick="runIntegration('jetbrains-acp')">Connect JetBrains</button>
+          </div>
+
+          <div class="integration-card">
+            <div class="integ-top">
+              <div class="integ-icon">🖥️</div>
+              <div class="integ-info">
+                <h3>Claude Desktop Gateway</h3>
+                <p>Allows Anthropic's official Claude Desktop App to access all free cloud and local models.</p>
+              </div>
+            </div>
+            <button class="btn-action primary" onclick="runIntegration('claude-desktop')">Set as Gateway</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           VIEW 6: PLAYGROUND
+           ================================================================== -->
+      <section class="view-pane" id="view-playground">
+        <div class="view-header">
+          <div class="view-title-group">
+            <h1>AI Test Playground</h1>
+            <p>Test prompt generation and check server routing latency directly from the admin dashboard.</p>
+          </div>
+          <div class="view-actions">
+            <button class="btn-action primary" id="btn-run-playground">Send Prompt ➔</button>
+          </div>
+        </div>
+
+        <div class="playground-box">
+          <label style="font-size: 12px; font-weight: 700; color: var(--neon-cyan);">PROMPT INPUT:</label>
+          <textarea class="playground-input" id="input-playground-prompt" placeholder="Write a python function to compute fibonacci numbers..."></textarea>
+          
+          <label style="font-size: 12px; font-weight: 700; color: var(--neon-emerald);">PROXY SERVER RESPONSE:</label>
+          <div class="playground-output" id="output-playground-response">Ready. Click 'Send Prompt' to test inference against the active model.</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ======================================================================
+       3. Provider Configuration Modal
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-provider">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-provider-title">Configure Provider</h3>
+        <button class="win-btn" id="btn-modal-close">✕</button>
+      </div>
+      <div id="modal-provider-body">
+        <!-- Dynamically injected fields -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action secondary" id="btn-modal-cancel">Cancel</button>
+        <button class="btn-action primary" id="btn-modal-save">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Hub -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Core JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Claude Studio — A calm, editorial, production-grade AI workspace for modern developers and creators. Real-time streaming, interactive artifacts, projects, and prompt management.">
+  <meta name="theme-color" content="#0e0d0c">
+  <title>Claude Studio — Professional AI Workspace</title>
+
+  <!-- Google Fonts: Newsreader (Editorial Serif), Inter (UI Sans), JetBrains Mono (Code) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+
+  <!-- Claude Studio Design System Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-dark accent-terracotta">
+  <!-- Master Application Viewport -->
+  <div class="app-viewport" id="app-viewport">
+    <!-- Collapsible App Shell Sidebar -->
+    <aside id="app-sidebar" class="app-sidebar" aria-label="Main Navigation"></aside>
+
+    <!-- Core Dynamic Content Area (Chat, Projects, Prompts, Files, Settings) -->
+    <main id="app-main-content" class="app-main-content" role="main"></main>
+
+    <!-- Resizable / Fullscreen Split-Pane Artifacts Panel -->
+    <aside id="app-artifacts-panel" class="app-artifacts-panel hidden" aria-label="Artifacts Viewer"></aside>
+  </div>
+
+  <!-- Modular Scripts Loaded in Exact Dependency Hierarchy (Direct file:// & HTTP Support) -->
+  <script src="js/icons.js"></script>
+  <script src="js/mockData.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/markdown.js"></script>
+  <script src="js/aiService.js"></script>
+  <script src="js/components/toasts.js"></script>
+  <script src="js/components/modals.js"></script>
+  <script src="js/components/commandPalette.js"></script>
+  <script src="js/components/sidebar.js"></script>
+  <script src="js/components/composer.js"></script>
+  <script src="js/components/artifactsPanel.js"></script>
+  <script src="js/components/chatView.js"></script>
+  <script src="js/components/projectsView.js"></script>
+  <script src="js/components/promptsView.js"></script>
+  <script src="js/components/filesView.js"></script>
+  <script src="js/components/settingsView.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

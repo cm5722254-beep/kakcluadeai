@@ -1,0 +1,63 @@
+{
+  "name": "cheatz-admin-claude-ai",
+  "version": "1.0.0",
+  "description": "CHEATZ ADMIN CLAUDE AI - Cyberpunk Admin Control Center & Multi-Provider Router for Free Claude Code Server",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build:dir": "electron-builder --win --dir",
+    "build:portable": "electron-builder --win portable",
+    "build:installer": "electron-builder --win nsis",
+    "dist": "electron-builder --win"
+  },
+  "keywords": [
+    "cheatz",
+    "claude-code",
+    "admin",
+    "fcc-server",
+    "cyberpunk",
+    "ai-router"
+  ],
+  "author": "CHEATZ STUDIO TEAM",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.cheatz.admin.claudeai",
+    "productName": "CHEATZ ADMIN CLAUDE AI",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "app.js",
+      "index.html",
+      "style.css",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker",
+      "signAndEditExecutable": false,
+      "icon": "assets/icon.png"
+    },
+    "portable": {
+      "requestExecutionLevel": "user"
+    }
+  }
+}

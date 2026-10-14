@@ -1,0 +1,28 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Large binaries (>100MB not supported on GitHub standard)
+Claude-Code-Pro-Manager-Windows-x64.zip
+*.zip
+*.tar.gz
+
+# Python & UV Cache / Virtual Environments
+uv/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Build outputs
+dist/
+build/
+out/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+*.tmp
+*.log

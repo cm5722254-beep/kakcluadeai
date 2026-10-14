@@ -1,0 +1,84 @@
+{
+  "name": "claude-code-studio-ide",
+  "version": "1.0.0",
+  "description": "Claude Code Studio IDE - Standalone AI Code Editor for Windows",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:all": "electron-builder --win",
+    "build:dir": "electron-builder --dir",
+    "build:portable": "electron-builder --win portable",
+    "build:installer": "electron-builder --win nsis",
+    "dist": "electron-builder --win"
+  },
+  "keywords": [
+    "claude-code",
+    "ide",
+    "editor",
+    "fcc-server",
+    "ai"
+  ],
+  "author": "FCC Studio Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "codemirror": "^6.0.1",
+    "monaco-editor": "^0.57.0",
+    "node-pty": "^1.1.0",
+    "xterm": "^5.3.0"
+  },
+  "build": {
+    "appId": "com.claudecode.studio",
+    "productName": "Claude Code Studio IDE",
+    "npmRebuild": false,
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/node-pty/**/*"
+    ],
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "style.css",
+      "package.json",
+      "node_modules/**/*",
+      "!dist/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        },
+        {
+          "target": "dir",
+          "arch": ["x64"]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Claude Code Studio IDE",
+      "runAfterFinish": true
+    },
+    "portable": {
+      "requestExecutionLevel": "user"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
